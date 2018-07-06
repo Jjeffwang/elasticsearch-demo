@@ -1,4 +1,7 @@
 #aop:spring:
   aop:
     auto: true # Add @EnableAspectJAutoProxy.
-    proxy-target-class: true #当我们需要使用CGLIB来实现AOP的时候，需要配置spring.aop.proxy-target-class=true
+    proxy-target-class: true
+  server:
+    port: 8088 #当我们需要使用CGLIB来实现AOP的时候，需要配置spring.aop.proxy-target-class=true
+

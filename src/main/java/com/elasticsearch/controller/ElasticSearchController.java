@@ -40,7 +40,7 @@ public class ElasticSearchController {
     @Autowired
     private TransportClient client;
 
-    @GetMapping("/")
+    @GetMapping("/index")
     public String index() {
         return "index";
     }
