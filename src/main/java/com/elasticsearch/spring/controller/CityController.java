@@ -34,15 +34,11 @@ public class CityController {
     /**
      * 搜索返回分页结果
      *
-     * @param pageNumber 当前页码
-     * @param pageSize 每页大小
      * @param searchContent 搜索内容
      * @return
      */
     @RequestMapping(value = "api/city/search", method = RequestMethod.POST)
-    public List<City> searchCity(@RequestParam(name = "pageNumber") int pageNumber,
-                                 @RequestParam(name = "pageSize", required = false) int pageSize,
-                                 @RequestParam(name = "searchContent") String searchContent) throws ExecutionException, InterruptedException {
-        return cityService.searchCity(pageNumber, pageSize,searchContent);
+    public List<City> searchCity(@RequestParam(name = "searchContent") String searchContent) throws ExecutionException, InterruptedException {
+        return cityService.searchCity2(searchContent);
     }
 }

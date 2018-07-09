@@ -1,5 +1,6 @@
 package com.elasticsearch.spring.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.elasticsearch.spring.Repository.CityRepository;
 import com.elasticsearch.spring.entity.City;
 import com.elasticsearch.spring.service.CityService;
@@ -19,13 +20,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.data.elasticsearch.core.query.SearchQuery;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -46,7 +45,7 @@ public class CityServiceImpl implements CityService {
 
     /* 搜索模式 */
     String SCORE_MODE_SUM = "sum"; // 权重分求和模式
-    Float  MIN_SCORE = 10.0F;      // 由于无相关性的分值默认为 1 ，设置权重分最小值为 10
+    Float MIN_SCORE = 10.0F;      // 由于无相关性的分值默认为 1 ，设置权重分最小值为 10
 
     @Autowired
     CityRepository cityRepository; // ES 操作类
@@ -60,16 +59,16 @@ public class CityServiceImpl implements CityService {
         return cityResult.getId();
     }
 
-    public List<City> searchCity(Integer pageNumber, Integer pageSize, String searchContent) throws ExecutionException, InterruptedException {
+    public List<City> searchCity(String searchContent) throws ExecutionException, InterruptedException {
 
-        SearchRequestBuilder searchRequestBuilder=client.prepareSearch("province").setTypes("city");
+        SearchRequestBuilder searchRequestBuilder = client.prepareSearch("province").setTypes("city");
         searchRequestBuilder.setSearchType(SearchType.DFS_QUERY_THEN_FETCH);
         //分页
         searchRequestBuilder.setFrom(DEFAULT_PAGE_NUMBER).setSize(PAGE_SIZE);
         //explain为true表示根据数据相关度排序，和关键字匹配最高的排在前面
         searchRequestBuilder.setExplain(true);
         BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
-        queryBuilder.must(QueryBuilders.matchQuery("name",searchContent));
+        queryBuilder.must(QueryBuilders.matchQuery("name", searchContent));
 
 //        ScoreFunctionBuilder<?> scoreFunctionBuilder = ScoreFunctionBuilders.fieldValueFactorFunction("sales").modifier(FieldValueFactorFunction.Modifier.LN1P).factor(0.1f);
         FunctionScoreQueryBuilder query = QueryBuilders.functionScoreQuery(queryBuilder);
@@ -91,9 +90,30 @@ public class CityServiceImpl implements CityService {
          * 方式二
          * 根据cityRepository获取
          */
-        SearchQuery searchQuery= new NativeSearchQueryBuilder().withQuery(query).build();
+        SearchQuery searchQuery = new NativeSearchQueryBuilder().withQuery(query).build();
         Page<City> cityPage = cityRepository.search(searchQuery);
         return cityPage.getContent();
+    }
+
+
+    public List<City> searchCity2(String searchContent) throws ExecutionException, InterruptedException {
+        BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
+        queryBuilder.must(QueryBuilders.matchQuery("name", searchContent));
+        /**
+         * 根据score进行计算分数高的排在前面
+         */
+        ScoreFunctionBuilder<?> scoreFunctionBuilder = ScoreFunctionBuilders.fieldValueFactorFunction("score").modifier(FieldValueFactorFunction.Modifier.LN1P).factor(0.1f);
+        SearchResponse searchResponse = client.prepareSearch("province").setTypes("city").
+                setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setFrom(DEFAULT_PAGE_NUMBER).setSize(PAGE_SIZE).setExplain(true).
+                setQuery(QueryBuilders.functionScoreQuery(QueryBuilders.functionScoreQuery(queryBuilder, scoreFunctionBuilder).boostMode(CombineFunction.SUM))).execute().get();
+        SearchHit[] hitList = searchResponse.getHits().getHits();
+        List<City> cityList=new ArrayList<>();
+        for (SearchHit hit : hitList) {
+            City city=JSON.parseObject(hit.getSourceAsString(),City.class);
+            System.out.println("SearchHit hit string:" + hit.getSourceAsString());
+            cityList.add(city);
+        }
+        return cityList;
     }
 
 }
