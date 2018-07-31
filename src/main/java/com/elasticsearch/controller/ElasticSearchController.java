@@ -1,5 +1,6 @@
 package com.elasticsearch.controller;
 
+import com.elasticsearch.aop.MyLog;
 import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexResponse;
@@ -27,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created with IDEA
@@ -45,9 +47,10 @@ public class ElasticSearchController {
         return "index";
     }
 
+
     @RequestMapping("get/book/novel")
-    public ResponseEntity get(  HttpServletRequest request)  {
-        String id=request.getParameter("id");
+    public ResponseEntity get(HttpServletRequest request) {
+        String id = request.getParameter("id");
         if (id.isEmpty())
             return new ResponseEntity(HttpStatus.NOT_FOUND);
         GetResponse result = this.client.prepareGet("book", "novel", id).get();
@@ -58,6 +61,7 @@ public class ElasticSearchController {
 
         return new ResponseEntity(result.getSource(), HttpStatus.OK);
     }
+
 
     @RequestMapping("add/book/novel")
     public ResponseEntity add(@RequestParam(name = "title") String title,
@@ -132,6 +136,7 @@ public class ElasticSearchController {
 
     //复合查询
     @PostMapping("query/book/novel")
+    @MyLog
     @ResponseBody
     public ResponseEntity query(
             @RequestParam(name = "author", required = false) String author,

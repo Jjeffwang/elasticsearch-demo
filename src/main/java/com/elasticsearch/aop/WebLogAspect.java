@@ -8,6 +8,7 @@ package com.elasticsearch.aop;
  */
 
 import org.aspectj.lang.JoinPoint;
+import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,15 +30,25 @@ import java.util.Arrays;
  * 使用@AfterThrowing用来处理当切入内容部分抛出异常之后的处理逻辑
  */
 //@Order(i)注解来标识切面的优先级
-@Aspect
 @Component
+@Aspect
 public class WebLogAspect {
 
     Logger logger = LoggerFactory.getLogger(WebLogAspect.class);
 
     ThreadLocal<Long> startTime = new ThreadLocal<>();
 
-    @Pointcut("execution(public * com.elasticsearch.demo..*.*(..)) && !execution(* com.elasticsearch.config..*.*(..))")
+    /**
+     * 指定包名进行日志信息记录
+     */
+//    @Pointcut("execution(public * com.elasticsearch..*.*(..)) && !execution(* com.elasticsearch.config..*.*(..))")
+//    public void webLog() {
+//    }
+
+    /**
+     * 通过注解的方式进行日志记录
+     */
+    @Pointcut("@annotation(com.elasticsearch.aop.MyLog)")
     public void webLog() {
     }
 
@@ -64,7 +75,8 @@ public class WebLogAspect {
         logger.info("RESPONSE : " + ret);
     }
 
-    // 环绕通知
+
+////     环绕通知
 //    @Around("webLog()")
 //    public void around(ProceedingJoinPoint joinPoint) throws Throwable {
 //        logger.info("请求开始");
