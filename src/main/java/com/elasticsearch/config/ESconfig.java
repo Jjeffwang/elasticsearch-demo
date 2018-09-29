@@ -21,7 +21,7 @@ public class ESconfig {
 
 
     @Bean
-    public TransportClient client() throws UnknownHostException{
+    public TransportClient client() throws UnknownHostException {
 
         //es集群配置（自定义配置） 连接自己安装的集群名称
 //        Settings settings = Settings.builder()
