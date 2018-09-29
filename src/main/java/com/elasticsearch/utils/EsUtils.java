@@ -9,9 +9,9 @@ import javax.annotation.PostConstruct;
 
 /**
  * Created with IDEA
- * author:wang
- * Date:2018/7/13 0013 下午 2:38
- * Description:
+ * @author:wang
+ * @Date:2018/7/13 0013 下午 2:38
+ * @Description:
  */
 @Component
 public class EsUtils {

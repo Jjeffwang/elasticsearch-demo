@@ -32,9 +32,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created with IDEA
- * author:wang
- * Date:2018/6/21 0021 上午 9:23
- * Description:
+ * @author:wang
+ * @Date:2018/6/21 0021 上午 9:23
+ * @Description:
  */
 @RestController
 public class ElasticSearchController {
@@ -51,8 +51,9 @@ public class ElasticSearchController {
     @RequestMapping("get/book/novel")
     public ResponseEntity get(HttpServletRequest request) {
         String id = request.getParameter("id");
-        if (id.isEmpty())
+        if (id.isEmpty()) {
             return new ResponseEntity(HttpStatus.NOT_FOUND);
+        }
         GetResponse result = this.client.prepareGet("book", "novel", id).get();
 
         if (!result.isExists()) {
@@ -91,7 +92,6 @@ public class ElasticSearchController {
     }
 
 
-    //修改
     @PutMapping("update/book/novel")
     @ResponseBody
     public ResponseEntity update(@RequestParam(name = "id") String id,
@@ -125,7 +125,6 @@ public class ElasticSearchController {
     }
 
 
-    //删除
     @PutMapping("delete/book/novel")
     @ResponseBody
     public ResponseEntity delete(@RequestParam(name = "id") String id) {
@@ -134,7 +133,14 @@ public class ElasticSearchController {
     }
 
 
-    //复合查询
+    /**
+     * 复合查询
+     * @param author
+     * @param title
+     * @param gtWordCount
+     * @param ltWordCount
+     * @return
+     */
     @PostMapping("query/book/novel")
     @MyLog
     @ResponseBody
